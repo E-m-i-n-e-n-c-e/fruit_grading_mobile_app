@@ -4,7 +4,7 @@ import 'package:fruit_grading_mobile_app/user.dart';
 
 class ApiService {
   static const String baseUrl =
-      "http://172.16.192.136:5000/"; // Use local or hosted API URL
+      "http://10.0.2.2:5000/"; // Use local or hosted API URL
 
   // Signup API
   static Future<http.Response> signup(

@@ -87,15 +87,22 @@ class ResultViewPage extends StatelessWidget {
 }
 
 // Special Container Widget
-class DataContainer extends StatelessWidget {
+class DataContainer extends StatefulWidget {
   final int index;
   final SinglePrediction data;
 
   const DataContainer({super.key, required this.index, required this.data});
 
   @override
+  State<DataContainer> createState() => _DataContainerState();
+}
+
+class _DataContainerState extends State<DataContainer> {
+  bool isExpanded = false;
+
+  @override
   Widget build(BuildContext context) {
-    double gradeVal = data.gradeVal;
+    double gradeVal = widget.data.gradeVal;
     double screenWidth = MediaQuery.of(context).size.width;
     double barWidth = screenWidth * 0.9;
     double pointerPosition = gradeVal * barWidth;
@@ -106,7 +113,7 @@ class DataContainer extends StatelessWidget {
       pointerPosition -= 25;
     }
 
-    Color qualityColor = valueToHsv(data.gradeVal);
+    Color qualityColor = valueToHsv(widget.data.gradeVal);
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
       elevation: 3,
@@ -116,99 +123,133 @@ class DataContainer extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("Fruit-${index + 1}",
-                style:
-                    const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-            Text("Detected Fruit: ${data.fruit}",
-                style: const TextStyle(fontSize: 16)),
-            Text("Grade: ${data.grade}", style: const TextStyle(fontSize: 16)),
-            Text("Grade in percent: ${data.gradeVal}",
-                style: const TextStyle(fontSize: 16)),
-            Text("Color and Shape accuracy: ${data.colorAndShape}",
-                style: const TextStyle(fontSize: 16)),
-            Text("Good texture Percentage: ${data.blemish}",
-                style: const TextStyle(fontSize: 16)),
-            const SizedBox(height: 10),
-
-            // HSV Color Gradient Bar
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            // Always visible content
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  "Quality Grade",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("Fruit-${widget.index + 1}",
+                        style: const TextStyle(
+                            fontSize: 22, fontWeight: FontWeight.bold)),
+                    Text("Detected Fruit: ${widget.data.fruit}",
+                        style: const TextStyle(fontSize: 16)),
+                    Text("Grade: ${widget.data.grade}",
+                        style: const TextStyle(fontSize: 16)),
+                  ],
                 ),
-                const SizedBox(height: 4),
+                TextButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      isExpanded = !isExpanded;
+                    });
+                  },
+                  icon: Icon(
+                    isExpanded ? Icons.visibility_off : Icons.visibility,
+                    color: Colors.blue,
+                  ),
+                  label: Text(
+                    isExpanded ? "Hide" : "See More",
+                    style: const TextStyle(
+                      color: Colors.blue,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
 
-                // Progress Bar with Gradient
-                Center(
-                  child: Stack(
-                    children: [
-                      // Gradient Bar
-                      Container(
-                        width:
-                            barWidth, // Set width to match pointer calculations
-                        height: 20,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          gradient: LinearGradient(
-                            colors: generateHSVGradient(
-                                Colors.red, Colors.green, 11),
-                            stops: List.generate(11, (i) => i / 10),
-                          ),
-                        ),
-                      ),
-                      // Pointer Indicator (Now accurately positioned)
-                      Positioned(
-                        left: pointerPosition, // Adjust based on bar width
-                        child: Container(
-                          width: 8,
-                          height: 18,
+            // Expandable content
+            if (isExpanded) ...[
+              const SizedBox(height: 10),
+              Text("Grade in percent: ${widget.data.gradeVal}",
+                  style: const TextStyle(fontSize: 16)),
+              Text("Color and Shape accuracy: ${widget.data.colorAndShape}",
+                  style: const TextStyle(fontSize: 16)),
+              Text("Good texture Percentage: ${widget.data.blemish}",
+                  style: const TextStyle(fontSize: 16)),
+              const SizedBox(height: 10),
+
+              // HSV Color Gradient Bar
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Quality Grade",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 4),
+
+                  // Progress Bar with Gradient
+                  Center(
+                    child: Stack(
+                      children: [
+                        // Gradient Bar
+                        Container(
+                          width: barWidth,
+                          height: 20,
                           decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(4),
-                            border: Border.all(color: Colors.black, width: 1),
+                            borderRadius: BorderRadius.circular(10),
+                            gradient: LinearGradient(
+                              colors: generateHSVGradient(
+                                  Colors.red, Colors.green, 11),
+                              stops: List.generate(11, (i) => i / 10),
+                            ),
                           ),
                         ),
+                        // Pointer Indicator
+                        Positioned(
+                          left: pointerPosition,
+                          child: Container(
+                            width: 8,
+                            height: 18,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(color: Colors.black, width: 1),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 8),
+                  // Poor - Excellent Labels
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: const [
+                      Text("Poor",
+                          style: TextStyle(
+                              fontSize: 12,
+                              color: Color.fromARGB(255, 65, 64, 64))),
+                      Text("Excellent",
+                          style: TextStyle(
+                              fontSize: 12,
+                              color: Color.fromARGB(255, 65, 64, 64))),
+                    ],
+                  ),
+
+                  // Quality Label & Score
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text("Excellent Quality",
+                          style: TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.bold)),
+                      Text(
+                        widget.data.gradeVal.toStringAsFixed(2),
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: qualityColor),
                       ),
                     ],
                   ),
-                ),
-
-                const SizedBox(height: 8),
-                // Poor - Excellent Labels
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: const [
-                    Text("Poor",
-                        style: TextStyle(
-                            fontSize: 12,
-                            color: Color.fromARGB(255, 65, 64, 64))),
-                    Text("Excellent",
-                        style: TextStyle(
-                            fontSize: 12,
-                            color: Color.fromARGB(255, 65, 64, 64))),
-                  ],
-                ),
-
-                // Quality Label & Score
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text("Excellent Quality",
-                        style: TextStyle(
-                            fontSize: 14, fontWeight: FontWeight.bold)),
-                    Text(
-                      data.gradeVal.toStringAsFixed(2),
-                      style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: qualityColor),
-                    ),
-                  ],
-                ),
-              ],
-            )
+                ],
+              )
+            ],
           ],
         ),
       ),
